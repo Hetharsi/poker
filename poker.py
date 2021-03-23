@@ -1,6 +1,6 @@
 import player
 import random
-deck = [('sz', 2), ('k', 2),('t', 2),('p', 2), ('sz', 3),
+deckOriginal = [('sz', 2), ('k', 2),('t', 2),('p', 2), ('sz', 3),
         ('k', 3),('t', 3),('p', 3), ('sz', 4), ('k', 4),
         ('t', 4),('p', 4), ('sz', 5), ('k', 5),('t', 5),
         ('p', 5),('sz', 6), ('k', 6),('t', 6),('p', 6),
@@ -48,7 +48,6 @@ def draw3Cards(players, deck)->[player]:
     for x in players:
         x.hand += newCards
 
-
 def playersInformation(players, actualPot:int)->None:
     global minPayment
     for x in players:
@@ -78,10 +77,8 @@ def playerDecisionWith2Cards(player)->str:
     global roundPot, minPayment
     print("The best hand for you is:", end= "")
     print(player.getBestHand())
-    if player.previousDecision == "3" and player.raisePlayer == True:
-        minPayment = 0
-    elif player.previousDecision == "3":
-        minPayment -= player.previousSpentAll
+    if player.previousDecision == "3":
+        minPayment -= player.previousRaise
 
 
     player.playerInformation(roundPot, minPayment)
@@ -136,12 +133,23 @@ def set_roundPlayers_default(players)-> [player]:
        p.previousDecision = "No decisision yet"
        p.previousRaise = 0
     return players
-def endOfGame(players)->bool:
+def endOfGame(activeGamePlayers)->bool:
     global roundPot
-    if len(players) <= 1:
+    if len(activeGamePlayers) <= 1:
         players[0].money += roundPot
         return True
     else: return False
+def bestHand(roundPlayers):
+    bestHands = []
+    for p in roundPlayers:
+        bestHands += [p.getBestHand()]
+    sorted(bestHands)
+    return bestHands
+def beforeTurn(players):
+    for player in players:
+        if player.inGame == True:
+            player.makeDefault()
+        else: players.remove(player)
 
 
 #Always make the game with 5 players
@@ -150,8 +158,13 @@ if __name__ == "__main__":
     activeGamePlayers = make_players_active(players)
     inactivePlayers   = []
 
-    while(endOfGame(activeGamePlayers) != True):
-        minPayment = 50
+
+    #This whole loop is just a turn in poker game -> [turn] == Game
+    while(endOfGame(activeGamePlayers) != True): 
+        beforeTurn(players)
+        #Every turn before the game evem start we make a default list of the following elements
+        deck = deckOriginal.copy()
+        minPayment = 0
         roundPot = 0
         roundPlayers = activeGamePlayers
         ind = 0
@@ -159,9 +172,9 @@ if __name__ == "__main__":
         #draw 2   cards
         draw2Cards(roundPlayers, deck)
 
-        while(len(roundPlayers)!= 1 and countPassiveRoundPlayers(roundPlayers) != 0):
-            if ind > len(roundPlayers)-1:
-                ind = 0
+        while(len(roundPlayers)!= 1 
+              and countPassiveRoundPlayers(roundPlayers) != 0):
+
             ans = playerDecisionWith2Cards(roundPlayers[ind])
             if "2" == ans:
                 inactivePlayers += [roundPlayers.pop(ind)]
@@ -170,16 +183,12 @@ if __name__ == "__main__":
                 for p in roundPlayers:
                     if roundPlayers[ind].name != p.name:
                         p.raisePlayer=False
-            ind += 1
-
-
-        print("in the end ============== player")
-        playersInformation(players, 0)
-        print("in the end ============== roundPlayer")
-        playersInformation(roundPlayers, 0)
+            ind = (ind + 1) % (len(roundPlayers))
 
         if endOfGame(roundPlayers) == True:
             print("This game was won by " + str(roundPlayers[0].name))
+            print("in the end ============================================= all players")
+            playersInformation(players, 0)
             continue
 
         #draw 3 cards
@@ -188,8 +197,7 @@ if __name__ == "__main__":
         minPayment = 0
         draw3Cards(roundPlayers, deck)
         while(len(roundPlayers)!= 1 and countPassiveRoundPlayers(roundPlayers) != 0):
-            if ind > len(roundPlayers)-1:
-                ind = 0
+
             ans = playerDecisionWith2Cards(roundPlayers[ind])
             if "2" == ans:
                 inactivePlayers += [roundPlayers.pop(ind)]
@@ -198,7 +206,29 @@ if __name__ == "__main__":
                 for p in roundPlayers:
                     if roundPlayers[ind].name != p.name:
                         p.raisePlayer=False
-            ind += 1
+            ind = (ind + 1) % (len(roundPlayers))
+
+        if endOfGame(roundPlayers) == True:
+            print("This round was won by " + str(roundPlayers[0].name))
+            print("in the end ============================================= all players")
+            playersInformation(players, 0)
+            continue
+
+        #draw 1 card
+        set_roundPlayers_default(roundPlayers)
+        ind = 0
+        minPayment = 0
+        draw1Card(roundPlayers, deck)
+        while(len(roundPlayers)!= 1 and countPassiveRoundPlayers(roundPlayers) != 0):
+            ans = playerDecisionWith2Cards(roundPlayers[ind])
+            if "2" == ans:
+                inactivePlayers += [roundPlayers.pop(ind)]
+                continue
+            elif "3" == ans:
+                for p in roundPlayers:
+                    if roundPlayers[ind].name != p.name:
+                        p.raisePlayer=False
+            ind = (ind + 1) % (len(roundPlayers))
 
         print("in the end ============== roundPlayer")
         playersInformation(roundPlayers, 0)
@@ -209,8 +239,7 @@ if __name__ == "__main__":
         minPayment = 0
         draw1Card(roundPlayers, deck)
         while(len(roundPlayers)!= 1 and countPassiveRoundPlayers(roundPlayers) != 0):
-            if ind > len(roundPlayers)-1:
-                ind = 0
+
             ans = playerDecisionWith2Cards(roundPlayers[ind])
             if "2" == ans:
                 inactivePlayers += [roundPlayers.pop(ind)]
@@ -219,31 +248,15 @@ if __name__ == "__main__":
                 for p in roundPlayers:
                     if roundPlayers[ind].name != p.name:
                         p.raisePlayer=False
-            ind += 1
+            ind = (ind + 1) % (len(roundPlayers))
 
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
         print("in the end ============== roundPlayer")
-        playersInformation(roundPlayers, 0)
+        print(bestHand(roundPlayers))
 
-        #draw 1 card
-        set_roundPlayers_default(roundPlayers)
-        ind = 0
-        minPayment = 0
-        draw1Card(roundPlayers, deck)
-        while(len(roundPlayers)!= 1 and countPassiveRoundPlayers(roundPlayers) != 0):
-            if ind > len(roundPlayers)-1:
-                ind = 0
-            ans = playerDecisionWith2Cards(roundPlayers[ind])
-            if "2" == ans:
-                inactivePlayers += [roundPlayers.pop(ind)]
-                continue
-            elif "3" == ans:
-                for p in roundPlayers:
-                    if roundPlayers[ind].name != p.name:
-                        p.raisePlayer=False
-            ind += 1
-
-        print("in the end ============== roundPlayer")
         playersInformation(roundPlayers, 0)
+        
+        print(deck)
 
 
 

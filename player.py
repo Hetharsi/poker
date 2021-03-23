@@ -17,6 +17,16 @@ class Player:
         s.previousSpentAll = 0
         s.keep = 0
 
+    def makeDefault(s):
+        s.hand = []
+        s.active = True
+        s.inRound = True
+        s.raisePlayer = False
+        s.previousDecision = "No decisision yet"
+        s.previousRaise = 0
+        s.previousSpentAll = 0
+        s.keep = 0
+
     def keepPot(s, roundPot, minPayment):
         print(f"Min payment:  {minPayment}")
         s.active = False

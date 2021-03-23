@@ -1,32 +1,36 @@
 from itertools import permutations
 from functools import reduce
+import poker
+
 
 
 cards = [('sz', 2), ('k', 2),('t', 2),('p', 2), ('sz', 3), ('k', 3),('t', 3),('p', 3), ('sz', 4), ('k', 4),('t', 4),('p', 4), ('sz', 5), ('k', 5),('t', 5),('p', 5),('sz', 6), ('k', 6),('t', 6),('p', 6), ('sz', 7), ('k', 7),('t', 7),('p', 7), ('sz', 8), ('k', 8),('t', 8),('p', 8), ('sz', 9), ('k', 9),('t', 9),('p', 9), ('sz', 10), ('k',10),('t', 10),('p', 10), ('sz', 11), ('k',11),('t', 11),('p', 11), ('sz', 12), ('k',12),('t', 12),('p', 12), ('sz', 13), ('k',13),('t', 13),('p', 13),('sz', 14), ('k',14),('t', 14),('p', 14)]
 
+
+
 def findBestHand(hand):
     if isFlush(hand):
-        return best_flush(hand)
+        return (10, best_flush(hand))
     elif isPoker(hand):
-        return best_poker(hand)
+        return (9, best_poker(hand))
     elif isFull(hand):
-        return best_full(hand)
+        return (8, best_full(hand))
     elif isPoker(hand):
-        return best_poker(hand)
+        return (7 ,best_poker(hand))
     elif isFull(hand):
-        return best_full(hand)
+        return (6, best_full(hand))
     elif isColourFlush(hand):
-        return best_colour_flush(hand)
+        return (5, best_colour_flush(hand))
     elif isStraight(hand):
-        return best_straight(hand)
+        return (4, best_straight(hand))
     elif isDrill(hand):
-        return best_drill(hand)
+        return (3, best_drill(hand))
     elif is_twoPair(hand): 
-        return best_twoPair(hand)
+        return (2, best_twoPair(hand))
     elif isPair(hand):
-        return best_pair(hand)
+        return (1, best_pair(hand))
     else: 
-        return emptyHand(hand)
+        return (0, emptyHand(hand))
 '''Return 
 
 '''
@@ -204,6 +208,5 @@ def best_straight(hand):
     return(straight)
 def emptyHand(hand): 
     return(hand)
-
 
 
